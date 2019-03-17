@@ -6,26 +6,37 @@ import time
 
 def init_config(config_file_path):
     """
-    Initializes the configuration>
+    Initializes the configuration
+
+    Args:
+        config_file_path:str: Path to .ini configuration file
     """
+
+    # asserting configuration file has the correct extension
+    path = config_file_path.split('.')
+    assert(path[len(path)-1] == 'ini')
+
     config = configparser.ConfigParser()
     config.read(config_file_path)
     return config
 
 
-def init_logger(logger_file_path):
+def get_logger(logger_file_path):
     """
     Creates a logging object and returns it
+
+    Returns:
+        logger:logging.Log: Log object
     """
-    logger = logging.getLogger('IGBotLogger')
-    logger.setLevel(logging.INFO)
+
+    logger = logging.getLogger('InstaBotLogger')
+    logger.setLevel(logging.DEBUG)
  
-    # create the logging file handler
+    # log file handler
     fh = logging.FileHandler(logger_file_path)
  
-    # log output format
-    fmt = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-    formatter = logging.Formatter(fmt)
+    # log format
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     fh.setFormatter(formatter)
  
     logger.addHandler(fh)
@@ -35,7 +46,14 @@ def init_logger(logger_file_path):
 def exception(func):
     """
     Exception logging decorator
+
+    Args:
+        func:function: Function to wrap
+
+    Returns:
+        wrapper:function: Wrapper function
     """
+
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
         try:
@@ -43,19 +61,26 @@ def exception(func):
         except:
             # log the exception
             msg = "There was an exception in {}".format(func.__name__)
+            logger = get_logger('bot.log')
             logger.exception(msg)
  
-            # re-raise the exception
-            raise
     return wrapper
 
 
 def insta_method(func):
     """
-    Instagram method decorator
+    Instagram method decorator. Sleeps for 2 seconds before and after calling any methods that interact with Instagram.
+
+    Args:
+        func:function: Function to wrap
+
+    Returns:
+        wrapper:function: Wrapper function
     """
+
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
+        time.sleep(2)
         func(*args, **kwargs)
         time.sleep(2)
 

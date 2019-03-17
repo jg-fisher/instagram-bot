@@ -3,7 +3,7 @@ import time
 from utility_methods.utility_methods import *
 
 
-class IGBot:
+class InstaBot:
 
     def __init__(self, username, password):
         """"
@@ -35,8 +35,8 @@ class IGBot:
         self.logged_in = False
 
 
-    @exception
     @insta_method
+    @exception
     def login(self):
         """
         Logs a user into Instagram via the web portal
@@ -57,8 +57,8 @@ class IGBot:
                 ts += 1
 
 
-    @exception
     @insta_method
+    @exception
     def search_tag(self, tag):
         """
         Naviagtes to a search for posts with a specific tag on IG.
@@ -70,8 +70,8 @@ class IGBot:
         self.driver.get(self.get_tag_url.format(tag))
 
 
-    @exception
     @insta_method
+    @exception
     def get_user(self, user):
         """
         Navigates to a users profile page
@@ -83,19 +83,28 @@ class IGBot:
         self.driver.get(self.get_user_url.format(user))
 
 
-    @exception
     @insta_method
+    @exception
     def follow_user(self, user=None):
         """
         Clicks the follow button once on a user's specific profile page
+
+        Args:
+            user:str: If specified, navigates to the users profile page before clicking the follow button.
         """
 
         if user:
             self.get_user(user)
 
-        follow_btn = self.driver.find_element_by_xpath("//*[@type='button' and contains(text(), 'Follow')]")
-        print(follow_btn)
-        follow_btn.click()
+        # filtering follow elements for buttons
+        # TODO: as of 3/17/2019, these two conditions are sufficient for profile pages
+        xpath_condition = self.driver.find_elements_by_xpath("//*[contains(text(), 'Follow')]")
+        class_condition = self.driver.find_elements_by_class_name('_5f5mN')
+
+        follow_buttons = [e for e in xpath_condition if e in class_condition]
+
+        for follow_btn in follow_elements:
+            follow_btn.click()
 
 
 if __name__ == '__main__':
@@ -103,8 +112,8 @@ if __name__ == '__main__':
     config_file_path = './config.ini' 
     logger_file_path = './bot.log'
     config = init_config(config_file_path)
-    logger = init_logger(logger_file_path)
+    logger = get_logger(logger_file_path)
 
-    bot = IGBot(config['INSTAGRAM']['USERNAME'], config['INSTAGRAM']['PASSWORD'])
+    bot = InstaBot(config['INSTAGRAM']['USERNAME'], config['INSTAGRAM']['PASSWORD'])
     bot.login()
-    bot.follow_user('manny.d3')
+    bot.follow_user('garyvee')

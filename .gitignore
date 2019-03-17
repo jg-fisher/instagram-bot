@@ -111,3 +111,6 @@ config.ini
 
 # editor settings
 .vscode/
+
+# logs
+bot.log
