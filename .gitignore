@@ -102,3 +102,12 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+# chromedriver
+chromedriver.exe
+
+# configuration for bot
+config.ini
+
+# editor settings
+.vscode/
