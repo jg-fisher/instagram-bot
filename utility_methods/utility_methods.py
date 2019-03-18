@@ -60,7 +60,7 @@ def exception(func):
             return func(*args, **kwargs)
         except:
             # log the exception
-            msg = "There was an exception in {}".format(func.__name__)
+            msg = "Exception in method {}".format(func.__name__)
             logger = get_logger('bot.log')
             logger.exception(msg)
  

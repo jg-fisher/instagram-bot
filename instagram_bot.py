@@ -17,7 +17,7 @@ class InstaBot:
             driver_path:str: Path to the chromedriver.exe
             driver:str: Instance of the Selenium Webdriver (chrome 72) 
             login_url:str: Url for logging into IG.
-            get_user_url:str: Url to go to a users homepage on IG.
+            nav_user_url:str: Url to go to a users homepage on IG.
             get_tag_url:str: Url to go to search for posts with a tag on IG.
             logged_in:bool: Boolean whether current user is logged in or not.
         """
@@ -29,14 +29,13 @@ class InstaBot:
         self.driver = webdriver.Chrome(self.driver_path)
 
         self.login_url = 'https://www.instagram.com/accounts/login/'
-        self.get_user_url = 'https://www.instagram.com/{}'
+        self.nav_user_url = 'https://www.instagram.com/{}'
         self.get_tag_url = 'https://www.instagram.com/explore/tags/{}/'
 
         self.logged_in = False
 
 
     @insta_method
-    @exception
     def login(self):
         """
         Logs a user into Instagram via the web portal
@@ -46,19 +45,16 @@ class InstaBot:
         self.driver.find_element_by_name('username').send_keys(self.username)
         self.driver.find_element_by_name('password').send_keys(self.password)
 
-        ts = 1
-        while not self.logged_in:
-            try:
-                self.driver.find_element_by_xpath('//*[@id="react-root"]/section/main/div/article/div/div[1]/div/form/div[3]/button/div').click()
-                self.logged_in = True
-            except Exception as e:
-                print(e)
-                time.sleep(ts) # occasional delay in element load
-                ts += 1
+        login_btn = self.driver.find_element_by_xpath('//*[@id="react-root"]/section/main/div/article/div/div[1]/div/form/div[3]/button/div').click()
+
+        try:
+            login_btn.click()
+            self.logged_in = True
+        except Exception as e:
+            self.logged_in = False
 
 
     @insta_method
-    @exception
     def search_tag(self, tag):
         """
         Naviagtes to a search for posts with a specific tag on IG.
@@ -71,40 +67,69 @@ class InstaBot:
 
 
     @insta_method
-    @exception
-    def get_user(self, user):
+    def nav_user(self, user):
         """
         Navigates to a users profile page
 
         Args:
-            user:str: String user.
+            user:str: Username of the user to navigate to the profile page of
         """
 
-        self.driver.get(self.get_user_url.format(user))
+        self.driver.get(self.nav_user_url.format(user))
 
 
     @insta_method
-    @exception
-    def follow_user(self, user=None):
+    def follow_user(self, user):
         """
-        Clicks the follow button once on a user's specific profile page
+        Follows user(s)
 
         Args:
-            user:str: If specified, navigates to the users profile page before clicking the follow button.
+            user:str: Username of the user to unfollow
         """
 
-        if user:
-            self.get_user(user)
+        self.nav_user(user)
 
-        # filtering follow elements for buttons
-        # TODO: as of 3/17/2019, these two conditions are sufficient for profile pages
-        xpath_condition = self.driver.find_elements_by_xpath("//*[contains(text(), 'Follow')]")
-        class_condition = self.driver.find_elements_by_class_name('_5f5mN')
+        follow_buttons = self.find_buttons('Follow')
 
-        follow_buttons = [e for e in xpath_condition if e in class_condition]
+        for btn in follow_buttons:
+            btn.click()
 
-        for follow_btn in follow_elements:
-            follow_btn.click()
+    
+    @insta_method
+    def unfollow_user(self, user):
+        """
+        Unfollows user(s)
+
+        Args:
+            user:str: Username of user to unfollow
+        """
+
+        self.nav_user(user)
+
+        unfollow_btns = self.find_buttons('Following')
+
+        if unfollow_btns:
+            for btn in unfollow_btns:
+                btn.click()
+                unfollow_confirmation = self.find_buttons('Unfollow')[0]
+                unfollow_confirmation.click()
+        else:
+            print('No {} buttons were found.'.format('Following'))
+
+
+    def find_buttons(self, button_text):
+        """
+        Finds buttons for following and unfollowing users by filtering follow elements for buttons. Defaults to finding follow buttons.
+
+        Args:
+            button_text: Text that the desired button(s) has 
+
+        TODO: as of 3/17/2019, these two conditions are sufficient for filtering profile pages
+        """
+
+        buttons = self.driver.find_elements_by_xpath("//*[text()='{}']".format(button_text))
+
+        return buttons
 
 
 if __name__ == '__main__':
@@ -116,4 +141,4 @@ if __name__ == '__main__':
 
     bot = InstaBot(config['INSTAGRAM']['USERNAME'], config['INSTAGRAM']['PASSWORD'])
     bot.login()
-    bot.follow_user('garyvee')
+    bot.unfollow_user('garyvee')
