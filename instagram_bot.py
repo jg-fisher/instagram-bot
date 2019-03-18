@@ -83,7 +83,7 @@ class InstaBot:
         Follows user(s)
 
         Args:
-            user:str: Username of the user to unfollow
+            user:str: Username of the user to follow
         """
 
         self.nav_user(user)
@@ -122,8 +122,6 @@ class InstaBot:
 
         Args:
             button_text: Text that the desired button(s) has 
-
-        TODO: as of 3/17/2019, these two conditions are sufficient for filtering profile pages
         """
 
         buttons = self.driver.find_elements_by_xpath("//*[text()='{}']".format(button_text))
