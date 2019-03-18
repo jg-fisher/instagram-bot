@@ -5,13 +5,13 @@ from utility_methods.utility_methods import *
 
 class InstaBot:
 
-    def __init__(self, username, password):
+    def __init__(self, username=None, password=None):
         """"
         Creates an instance of IGBot class.
 
         Args:
-            username:str: The username of the user.
-            password:str: The password of the user.
+            username:str: The username of the user, if not specified, read from configuration.
+            password:str: The password of the user, if not specified, read from configuration.
 
         Attributes:
             driver_path:str: Path to the chromedriver.exe
@@ -22,15 +22,14 @@ class InstaBot:
             logged_in:bool: Boolean whether current user is logged in or not.
         """
 
-        self.username = username
-        self.password = password
+        self.username = config['IG_AUTH']['USERNAME']
+        self.password = config['IG_AUTH']['PASSWORD']
 
-        self.driver_path = './chromedriver.exe'
-        self.driver = webdriver.Chrome(self.driver_path)
+        self.login_url = config['IG_URLS']['LOGIN']
+        self.nav_user_url = config['IG_URLS']['NAV_USER']
+        self.get_tag_url = config['IG_URLS']['SEARCH_TAGS']
 
-        self.login_url = 'https://www.instagram.com/accounts/login/'
-        self.nav_user_url = 'https://www.instagram.com/{}'
-        self.get_tag_url = 'https://www.instagram.com/explore/tags/{}/'
+        self.driver = webdriver.Chrome(config['ENVIRONMENT']['CHROMEDRIVER_PATH'])
 
         self.logged_in = False
 
@@ -139,6 +138,7 @@ if __name__ == '__main__':
     config = init_config(config_file_path)
     logger = get_logger(logger_file_path)
 
-    bot = InstaBot(config['INSTAGRAM']['USERNAME'], config['INSTAGRAM']['PASSWORD'])
+    bot = InstaBot()
     bot.login()
-    bot.unfollow_user('garyvee')
+    bot.follow_user('garyvee')
+    bot.unfollow_user('tonyrobbins')
