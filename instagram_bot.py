@@ -9,7 +9,7 @@ class InstaBot:
 
     def __init__(self, username=None, password=None):
         """"
-        Creates an instance of IGBot class.
+        Creates an instance of InstaBot class.
 
         Args:
             username:str: The username of the user, if not specified, read from configuration.
@@ -128,9 +128,11 @@ class InstaBot:
         img_srcs = []
         finished = False
         while not finished:
-            img_srcs.extend([img.get_attribute('src') for img in self.driver.find_elements_by_class_name('FFVAD')]) # scrape srcs
-            img_srcs = list(set(img_srcs)) # clean up duplicates
             finished = self.infinite_scroll() # scroll down
+
+            img_srcs.extend([img.get_attribute('src') for img in self.driver.find_elements_by_class_name('FFVAD')]) # scrape srcs
+
+        img_srcs = list(set(img_srcs)) # clean up duplicates
 
         for idx, src in enumerate(img_srcs):
             self.download_image(src, idx, user)
@@ -153,6 +155,9 @@ class InstaBot:
         """
         Scrolls to the bottom of a users page to load all of their media
 
+        Returns:
+            bool: True if the bottom of the page has been reached, else false
+
         """
 
         SCROLL_PAUSE_TIME = 1
@@ -164,6 +169,7 @@ class InstaBot:
         time.sleep(SCROLL_PAUSE_TIME)
 
         self.new_height = self.driver.execute_script("return document.body.scrollHeight")
+
 
         if self.new_height == self.last_height:
             return True
@@ -194,4 +200,4 @@ if __name__ == '__main__':
 
     bot = InstaBot()
     bot.login()
-    bot.download_user('chefvelreed')
+    bot.download_user_images('garyvee')
