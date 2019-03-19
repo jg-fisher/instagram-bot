@@ -44,7 +44,10 @@ class InstaBot:
 
         self.driver.get(self.login_url)
 
+        time.sleep(1)
         login_btn = self.driver.find_element_by_xpath('//*[@id="react-root"]/section/main/div/article/div/div[1]/div/form/div[3]') # login button xpath changes after text is entered, find first
+        time.sleep(1)
+
         username_input = self.driver.find_element_by_name('username')
         password_input = self.driver.find_element_by_name('password')
 
@@ -128,6 +131,7 @@ class InstaBot:
         img_srcs = []
         finished = False
         while not finished:
+
             finished = self.infinite_scroll() # scroll down
 
             img_srcs.extend([img.get_attribute('src') for img in self.driver.find_elements_by_class_name('FFVAD')]) # scrape srcs
@@ -136,7 +140,36 @@ class InstaBot:
 
         for idx, src in enumerate(img_srcs):
             self.download_image(src, idx, user)
+    
 
+    def like_latest_posts(self, user, n_posts, like=True):
+        """
+        Likes a number of a users latest posts, specified by n_posts.
+
+        Args:
+            user:str: User whose posts to like or unlike
+            n_posts:int: Number of most recent posts to like or unlike
+            like:bool: If True, likes recent posts, else if False, unlikes recent posts
+
+        TODO: Currently maxes out around 15.
+        """
+
+        action = 'Like' if like else 'Unlike'
+
+        self.nav_user(user)
+
+        imgs = []
+        imgs.extend(self.driver.find_elements_by_class_name('_9AhH0'))
+
+        for img in imgs[:n_posts]:
+            img.click() 
+            time.sleep(1) 
+            try:
+                self.driver.find_element_by_xpath("//*[@aria-label='{}']".format(action)).click()
+            except:
+                pass
+            self.driver.find_elements_by_class_name('ckWGn')[0].click()
+    
 
     def download_image(self, src, image_filename, folder):
         """
@@ -200,4 +233,5 @@ if __name__ == '__main__':
 
     bot = InstaBot()
     bot.login()
-    bot.download_user_images('garyvee')
+
+    bot.like_latest_posts('johngfisher', 2, like=False)
