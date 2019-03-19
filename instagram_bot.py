@@ -1,6 +1,8 @@
 from selenium import webdriver
 import time
 from utility_methods.utility_methods import *
+import urllib.request
+import os
 
 
 class InstaBot:
@@ -34,6 +36,14 @@ class InstaBot:
         self.logged_in = False
 
 
+    #@insta_method
+    #def launch(self):
+    #    """
+    #    Navigates to the login page.
+    #    """
+    #    self.driver.get(self.login_url)
+
+
     @insta_method
     def login(self):
         """
@@ -41,16 +51,14 @@ class InstaBot:
         """
 
         self.driver.get(self.login_url)
-        self.driver.find_element_by_name('username').send_keys(self.username)
-        self.driver.find_element_by_name('password').send_keys(self.password)
 
-        login_btn = self.driver.find_element_by_xpath('//*[@id="react-root"]/section/main/div/article/div/div[1]/div/form/div[3]/button/div').click()
+        login_btn = self.driver.find_element_by_xpath('//*[@id="react-root"]/section/main/div/article/div/div[1]/div/form/div[3]') # login button xpath changes after text is entered, find first
+        username_input = self.driver.find_element_by_name('username')
+        password_input = self.driver.find_element_by_name('password')
 
-        try:
-            login_btn.click()
-            self.logged_in = True
-        except Exception as e:
-            self.logged_in = False
+        username_input.send_keys(self.username)
+        password_input.send_keys(self.password)
+        login_btn.click()
 
 
     @insta_method
@@ -114,6 +122,34 @@ class InstaBot:
                 unfollow_confirmation.click()
         else:
             print('No {} buttons were found.'.format('Following'))
+    
+
+    @insta_method
+    def download_user(self, user):
+        """
+        Downloads all media from a users profile.
+
+        """
+    
+        self.nav_user(user)
+        img_srcs = [img.get_attribute('src') for img in self.driver.find_elements_by_class_name('FFVAD')]
+
+        for idx, src in enumerate(img_srcs):
+            print(src)
+            self.download_image(src, idx, user)
+        
+
+    def download_image(self, src, image_filename, folder):
+        """
+        Creates a folder named after a user to to store the image, then downloads the image to the folder.
+        """
+
+        folder_path = './{}'.format(folder)
+        if not os.path.exists(folder_path):
+            os.mkdir(folder_path)
+
+        img_filename = 'image_{}.jpg'.format(image_filename)
+        urllib.request.urlretrieve(src, '{}/{}'.format(folder, img_filename))
 
 
     def find_buttons(self, button_text):
@@ -138,5 +174,4 @@ if __name__ == '__main__':
 
     bot = InstaBot()
     bot.login()
-    bot.follow_user('garyvee')
-    bot.unfollow_user('tonyrobbins')
+    bot.download_user('garyvee')
