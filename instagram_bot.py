@@ -36,14 +36,6 @@ class InstaBot:
         self.logged_in = False
 
 
-    #@insta_method
-    #def launch(self):
-    #    """
-    #    Navigates to the login page.
-    #    """
-    #    self.driver.get(self.login_url)
-
-
     @insta_method
     def login(self):
         """
@@ -125,19 +117,24 @@ class InstaBot:
     
 
     @insta_method
-    def download_user(self, user):
+    def download_user_images(self, user):
         """
-        Downloads all media from a users profile.
+        Downloads all images from a users profile.
 
         """
     
         self.nav_user(user)
-        img_srcs = [img.get_attribute('src') for img in self.driver.find_elements_by_class_name('FFVAD')]
+
+        img_srcs = []
+        finished = False
+        while not finished:
+            img_srcs.extend([img.get_attribute('src') for img in self.driver.find_elements_by_class_name('FFVAD')]) # scrape srcs
+            img_srcs = list(set(img_srcs)) # clean up duplicates
+            finished = self.infinite_scroll() # scroll down
 
         for idx, src in enumerate(img_srcs):
-            print(src)
             self.download_image(src, idx, user)
-        
+
 
     def download_image(self, src, image_filename, folder):
         """
@@ -150,6 +147,29 @@ class InstaBot:
 
         img_filename = 'image_{}.jpg'.format(image_filename)
         urllib.request.urlretrieve(src, '{}/{}'.format(folder, img_filename))
+
+
+    def infinite_scroll(self):
+        """
+        Scrolls to the bottom of a users page to load all of their media
+
+        """
+
+        SCROLL_PAUSE_TIME = 1
+
+        self.last_height = self.driver.execute_script("return document.body.scrollHeight")
+
+        self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+
+        time.sleep(SCROLL_PAUSE_TIME)
+
+        self.new_height = self.driver.execute_script("return document.body.scrollHeight")
+
+        if self.new_height == self.last_height:
+            return True
+
+        self.last_height = self.new_height
+        return False
 
 
     def find_buttons(self, button_text):
@@ -174,4 +194,4 @@ if __name__ == '__main__':
 
     bot = InstaBot()
     bot.login()
-    bot.download_user('garyvee')
+    bot.download_user('chefvelreed')
